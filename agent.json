@@ -154,6 +154,16 @@
       "platform": "slack",
       "name": "Slack \u2014 Sendscout",
       "is_active": true
+    },
+    {
+      "platform": "linkedin",
+      "name": "LinkedIn \u2014 Nikita Markovic",
+      "is_active": true
+    },
+    {
+      "platform": "linkedin-messaging",
+      "name": "LinkedIn Messages \u2014 Nikita Markovic",
+      "is_active": true
     }
   ],
   "routines": [
