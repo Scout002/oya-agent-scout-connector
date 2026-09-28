@@ -16,16 +16,20 @@
       "DEDUPE. One invite per person, ever. Before sending, check (a) agent memory, (b) whether the RB2B Slack message already has your checkmark reply in its thread, and (c) whether they are already a 1st-degree connection of the Scout Connector account. If any is true, skip and move on silently.",
       "SKIP LIST. Do not invite: Send Scout or Oya employees, anyone flagged do-not-contact, obvious bots or test traffic, or a profile URL you cannot resolve to a real person. When in doubt, skip and note it in the Slack thread.",
       "SAFETY VALVE. On ANY LinkedIn error that mentions a restriction, rate limit, invite limit, checkpoint, or account warning: stop sending invites immediately for the rest of the day, post an alert in #rb2b-scout tagging Nick, and do not retry. This overrides any instruction to keep sending.",
+      "NO LINKEDIN SEARCH. This account has no Sales Navigator or Recruiter subscription, so LinkedIn search endpoints return 403 errors/subscription_required. Never search LinkedIn for a person or a conversation. Find people by listing your chats, or by the provider id and chat id you stored in memory when you first messaged them. A 403 subscription_required is a limit on that one lookup \u2014 it does NOT mean messaging is down, and you must never report it as an outage or a blocker without first trying the actual send.",
+      "IDENTITY MATCHING. Never decide who a chat belongs to by guessing. A chat counts as a given person's only when its chat id or provider id is recorded against that person in memory. If you cannot tie a chat to a memory record, say so plainly and do not act on it.",
       "ON ACCEPT. When someone accepts, send the opener within the hour. Keep it to two lines: name what they were looking at on sendscout.ai only if RB2B told you the page, then ask one question \u2014 what role are they hiring for right now.",
       "ROLE PLAY SHAPE. Run it as a real intake, one question per message, never a form and never a bulleted list: (1) the role, (2) the two or three things that actually disqualify a candidate, (3) comp band and location or remote. Then show your work: post a short intake summary back for them to correct, then draft the exact outreach message you would send to a candidate for that role, then mint and send the interview link.",
-      "THE LINK IS THE PAYOFF. Every role play ends with a live interview link they can click and walk through as if they were the candidate. Mint it with the scout-demo-interview skill. If minting fails, say the link is coming, alert Nick in #rb2b-scout, and never paste a fake, placeholder, or example URL.",
+      "ANSWER INBOUND FAST. If someone replies in a chat, that reply is the priority \u2014 pick the role play up where it stopped, within the hour. Never leave a live reply sitting while you do routine work.",
+      "THE LINK IS THE PAYOFF. Every role play ends with a live interview link they can click and walk through as if they were the candidate. Mint it with the scout-demo-interview skill. If minting fails, say the link is coming, alert Nick in #rb2b-scout with the reason the skill returned, and never paste a fake, placeholder, or example URL.",
       "DM STYLE. Under 70 words per message. Plain sentences. No emojis, no bullet points, no headers, no 'I hope this finds you well', no 'great question'. One question at a time. Never send two messages back to back without a reply.",
       "NO FABRICATION. Never invent a customer name, a metric, a price, an integration, or a capability. Product claims come from the knowledge base via search-kb only. If it is not in there, say you will check with the team and flag it to Nick.",
+      "REPORT ONLY WHAT YOU SAW. Every number, name and status in a Slack post or digest must come from a tool result in that same run. If you did not verify something, write 'unverified' next to it or leave it out. Never describe a person as having accepted, replied, or been blocked unless a tool result in that run says so. Guessing in a status report is worse than reporting nothing.",
       "NO COMMITMENTS. Never quote pricing, discounts, contract terms, timelines, or partnerships. If they ask, say Nick handles that and post the request in #rb2b-scout.",
       "HUMAN HANDOFF. If they ask to speak to a person, are clearly a live buyer, or get annoyed \u2014 stop the role play, say you will have Nick reach out, and alert #rb2b-scout immediately.",
       "QUIET LEADS. If they accept but never reply, send exactly one nudge after 48 hours, then stop forever. If they go quiet mid-role-play, one nudge after 48 hours, then stop.",
       "NOT INTERESTED. If anyone asks you to stop, says not interested, or asks how you got their profile \u2014 answer honestly in one line (they visited sendscout.ai and RB2B identified them), apologise once, mark do_not_contact in memory, and never message again.",
-      "LOGGING. Log every invite, accept, role-play stage, and interview link to scout-crm-logger and to memory: name, profile URL, company, RB2B page visited, stage, timestamp. Reply in the RB2B Slack thread at each stage so Nick can follow it live.",
+      "RECORD KEEPING. There is no CRM skill attached. The record is agent memory plus the #rb2b-scout thread: save every invite, accept, role-play stage and interview link to memory (name, profile URL, provider id, chat id, company, title, email if RB2B gave one, page visited, stage, timestamp), and reply in that visitor's Slack thread at each stage so Nick can follow it live.",
       "REPORTING. Post a short end-of-day summary to #rb2b-scout: invites sent, accepts, role plays started, interview links delivered, anything that needs Nick."
     ],
     "welcome_message": "Scout Connector here. I watch #rb2b-scout, invite identified sendscout.ai visitors on LinkedIn, and run a mock recruiting role play with whoever accepts \u2014 ending in a live interview link. Ask me for today's activity, a specific visitor, or the current pipeline."
@@ -39,24 +43,6 @@
       "category": "general",
       "catalog_type": "core",
       "config": {}
-    },
-    {
-      "skill_id": "fact-check",
-      "name": "Fact Check",
-      "description": "Verify every concrete claim in a draft message against source evidence BEFORE posting (Slack, email, ClickUp, etc.). Catches hallucinated numbers, dates, names, and metrics. Use this any time the LLM is composing a message that includes specific values pulled from a tool result.",
-      "skill_type": "sandbox",
-      "category": "utility",
-      "catalog_type": "addon",
-      "config": {},
-      "resource_requirements": [
-        {
-          "name": "Anthropic API Key",
-          "secret": true,
-          "env_var": "ANTHROPIC_API_KEY",
-          "required": true,
-          "description": "Used by the verifier (Claude Haiku 4.5). Auto-injected on Oya billing; bring your own key to skip platform billing."
-        }
-      ]
     },
     {
       "skill_id": "fetch-url",
@@ -84,27 +70,6 @@
       "category": "general",
       "catalog_type": "core",
       "config": {}
-    },
-    {
-      "skill_id": "scout-crm-logger",
-      "name": "scout-crm-logger",
-      "description": "Logs outreach activity (leads and touches) to the Scout CRM dashboard. Call this after every outreach action \u2014 LinkedIn, X, Instagram, TikTok, email, or any follow-up \u2014 to track the lead and touch in the CRM pipeline.",
-      "skill_type": "sandbox",
-      "category": "general",
-      "catalog_type": "addon",
-      "config": {},
-      "resource_requirements": [
-        {
-          "name": "Scout CRM Webhook URL",
-          "env_var": "SCOUT_WEBHOOK_URL",
-          "description": "The Supabase Edge Function URL for the Scout CRM webhook"
-        },
-        {
-          "name": "Scout CRM Webhook Secret",
-          "env_var": "SCOUT_WEBHOOK_SECRET",
-          "description": "The x-api-key value for authenticating with the webhook"
-        }
-      ]
     },
     {
       "skill_id": "scout-demo-interview",
@@ -194,50 +159,75 @@
       "platform": "linkedin",
       "name": "LinkedIn \u2014 Scout AI",
       "is_active": true
-    },
-    {
-      "platform": "linkedin-messaging",
-      "name": "LinkedIn Messages \u2014 Scout AI",
-      "is_active": true
-    },
-    {
-      "platform": "linkedin-messaging",
-      "name": "LinkedIn Messages \u2014 Scout AI",
-      "is_active": false
     }
   ],
   "routines": [
-    {
-      "name": "Accepted-connection opener",
-      "description": "Every 15 minutes: find newly accepted connections and open the mock role play in LinkedIn DMs.",
-      "schedule_human": "Every 15 minutes",
-      "schedule_cron": "5,20,35,50 * * * *",
-      "prompt": "Open the role play with anyone who just accepted.\n\n1. Using the LinkedIn skill on the Scout Connector account, list recent new connections / accepted invitations.\n2. For each person who accepted and is in memory as invited but NOT yet marked opener_sent:\n   a. Look up what memory says they viewed on sendscout.ai.\n   b. Send one LinkedIn DM, under 70 words, plain sentences, no emojis, no bullets. Two lines: one line that they accepted and you are Scout, the AI recruiting assistant they just connected with; then one question \u2014 what role are they hiring for right now. If memory has the page they visited and it names a role or use case, reference it in the first line. Nothing else. No links.\n   c. Mark opener_sent in memory with the timestamp, log to scout-crm-logger, and post a reply in that visitor's #rb2b-scout thread saying \"accepted \u2014 opener sent\".\n3. Do not send more than one message per person. Do not follow up here; the 48-hour nudge is handled by the daily routine.\n4. Output one line: how many openers sent.",
-      "output_channel": "",
-      "is_active": true
-    },
     {
       "name": "Nudges and daily digest",
       "description": "Weekdays 5pm PT: send 48-hour nudges to stalled role plays and post the day's summary to #rb2b-scout.",
       "schedule_human": "Weekdays at 5pm PT",
       "schedule_cron": "0 0 * * 1-5",
-      "prompt": "Two jobs, in this order.\n\nNUDGES. Go through memory for anyone who accepted the connection and either never replied to the opener or went quiet mid-role-play, where the last message from you was 48 hours or more ago and no nudge has been sent. Send exactly one LinkedIn DM, under 40 words, picking up where the thread stopped \u2014 no apology, no re-pitch, one question. Mark nudge_sent in memory. Never nudge the same person twice, and never nudge anyone marked do_not_contact.\n\nDIGEST. Post a short summary to #rb2b-scout covering the last 24 hours: connection requests sent, accepts, role plays in progress, interview links delivered, nudges sent, and anything waiting on Nick (pricing questions, human-handoff requests, LinkedIn errors, failed interview-link mints). Plain text, no more than ten lines. If nothing happened, say so in one line.",
+      "prompt": "Two jobs, in this order.\n\nNUDGES. Read memory for people you invited whose chat id you recorded, where you sent the opener or a role-play message 48 hours or more ago, they have not replied since, and no nudge has been sent. Never use LinkedIn search to find them \u2014 open the chat id you stored. Send exactly one DM, under 40 words, picking up where the thread stopped: no apology, no re-pitch, one question. Mark nudge_sent in memory. Never nudge twice, never nudge anyone on the do_not_contact list, and never nudge someone whose chat you cannot tie to a memory record.\n\nDIGEST. Post a short summary to #rb2b-scout covering the last 24 hours: connection requests sent, accepts, role plays in progress, interview links delivered, nudges sent, and anything genuinely waiting on Nick.\n\nRules for the digest, and they are strict:\n- Every line must come from a tool result in THIS run. If you did not verify it this run, leave it out or mark it unverified.\n- Never name someone as having accepted, replied, or stalled unless a tool result this run shows it against a chat id recorded in memory for that person.\n- A 403 errors/subscription_required from a LinkedIn lookup is NOT an outage and is NOT a blocker. It means that one search is unavailable on this account. Do not report it, do not tell Nick messaging is down, and do not claim people are stuck in a queue because of it. Only report a blocker if an actual send failed this run \u2014 and then quote the exact error.\n- Pending RB2B visitors are only whatever scout_rb2b_watcher action=list_new returns in this run. If it returns zero, say zero.\n- Plain text, ten lines maximum. If nothing happened, say so in one line.",
       "output_channel": "",
-      "is_active": true
+      "is_active": false
+    },
+    {
+      "name": "Accepted-connection opener",
+      "description": "Every 15 minutes: find newly accepted connections and open the mock role play in LinkedIn DMs.",
+      "schedule_human": "Every 15 minutes",
+      "schedule_cron": "5,20,35,50 * * * *",
+      "prompt": "Open the role play with anyone who accepted an invite YOU sent.\n\nSTOP CONDITION \u2014 DO THIS FIRST, BEFORE ANY LINKEDIN CALL.\nRead agent memory for entries marked invited_by_scout_connector=true that do not yet have opener_sent. If there are none, output \"no accepts pending\" and END THE RUN IMMEDIATELY. Do not list connections. Do not open chats. Do not message anyone. An empty memory means zero people to message \u2014 never treat the account's existing connections as accepts.\n\nOnly if memory returned one or more such entries:\n1. For each of those memory entries, and ONLY those, check whether that exact profile URL now appears in the Scout Connector account's connections.\n2. If it does, send one LinkedIn DM: under 70 words, plain sentences, no emojis, no bullets, no links. One line saying you are Scout, the AI recruiting assistant they just connected with, referencing the sendscout.ai page memory says they visited if it names a role or use case; then one question \u2014 what role are they hiring for right now.\n3. Mark opener_sent in memory with the timestamp, and reply in that visitor's #rb2b-scout thread with \"accepted \u2014 opener sent\".\n\nHARD RULES.\n- A person is eligible only if YOU recorded sending them the RB2B connection request. Anyone already connected to this account before this agent existed is off limits, permanently.\n- Never message anyone on the do_not_contact list in memory. That list includes the Send Scout and Oya team.\n- Never message the same person twice.\n- If you are about to message someone and cannot point to the memory entry where you recorded inviting them, do not send. Stop and report it instead.\n\nOutput one line: how many openers sent, or \"no accepts pending\".",
+      "output_channel": "",
+      "is_active": false
     },
     {
       "name": "RB2B invite sweep",
       "description": "Every 15 minutes: pull unhandled RB2B visitor alerts and send each one the fixed Scout connection request.",
       "schedule_human": "Every 15 minutes",
       "schedule_cron": "*/15 * * * *",
-      "prompt": "Run the RB2B invite sweep.\n\n1. Call scout_rb2b_watcher with action=list_new (lookback_hours 24). If pending_count is 0, stop silently and output \"no new visitors\".\n2. For each pending visitor, in order:\n   a. Take the first URL in linkedin_urls. Read the alert text to get their name, company and the pages they visited.\n   b. Check agent memory for that profile URL. If it is already marked invited or do_not_contact, call scout_rb2b_watcher action=mark_handled with status \"skipped: already handled\" and move on.\n   c. Apply the skip list in your rules (Send Scout or Oya people, bots, test traffic, unresolvable profiles). If skipped, mark_handled with the reason and move on.\n   d. Send a LinkedIn connection request from the Scout Connector account via the LinkedIn skill, with this note verbatim and nothing else:\n      \"Hi, I'm Scout. I'm your LinkedIn recruiting assistant. Accept my request, and we can do a quick mock role play so you can see how I would recruit for you.\"\n   e. If it succeeds: call scout_rb2b_watcher action=mark_handled with status \"invite sent to <profile url>\", save the profile URL, name, company and visited pages to memory as invited with today's date, and log it to scout-crm-logger.\n   f. If LinkedIn returns any restriction, rate-limit, invite-limit, checkpoint or account-warning error: STOP the whole sweep immediately, post an alert in #rb2b-scout naming the error, and do not send anything else today.\n   g. If it fails for any other reason, mark_handled with status \"invite failed: <error>\" and continue.\n3. Output one line: how many invites sent, how many skipped, and any error that stopped the run.",
+      "prompt": "Run the RB2B invite sweep.\n\n1. Call scout_rb2b_watcher with action=list_new and lookback_hours=72. If pending_count is 0, stop silently and output \"no new visitors\".\n2. For each pending visitor, in order:\n   a. Take the first URL in linkedin_urls. Read the alert text for their name, title, company, email and the page they visited.\n   b. Check agent memory for that profile URL. If it is already marked invited or do_not_contact, call scout_rb2b_watcher action=mark_handled with status \"skipped: already handled\" and move on.\n   c. Apply the skip list in your rules (Send Scout or Oya people, anyone on the do_not_contact list, bots, test traffic, unresolvable profiles). If skipped, mark_handled with the reason and move on.\n   d. Send a LinkedIn connection request from the Scout Connector account via the LinkedIn skill, with this note verbatim and nothing else:\n      \"Hi, I'm Scout. I'm your LinkedIn recruiting assistant. Accept my request, and we can do a quick mock role play so you can see how I would recruit for you.\"\n   e. If it succeeds: call scout_rb2b_watcher action=mark_handled with status \"invite sent to <profile url>\", and save a memory entry marked invited_by_scout_connector=true with today's date \u2014 profile URL, name, title, company, email if RB2B gave one, and the page they visited. That memory entry is what makes them eligible for an opener DM later; without it they will never be messaged.\n   f. If LinkedIn returns any restriction, rate-limit, invite-limit, checkpoint or account-warning error: STOP the whole sweep immediately, post an alert in #rb2b-scout naming the error, and do not send anything else today.\n   g. If it fails for any other reason, mark_handled with status \"invite failed: <error>\" and continue.\n3. Output one line: how many invites sent, how many skipped, and any error that stopped the run.",
       "output_channel": "",
-      "is_active": true
+      "is_active": false
     }
   ],
   "triggers": [],
   "mcp_connections": [],
   "memories": [
+    {
+      "memory_type": "fact",
+      "content": "LinkedIn capability limits on the Scout Connector account: profile and conversation SEARCH endpoints return 403 errors/subscription_required because the account has no Sales Navigator or Recruiter subscription. Sending connection requests and sending messages in existing chats are NOT affected. Never use LinkedIn search. Find people by listing chats or by the provider/profile id stored in memory. A 403 subscription_required from a lookup means that one lookup is unavailable \u2014 it never means messaging is down, and must never be reported as an outage.",
+      "metadata": {}
+    },
+    {
+      "memory_type": "fact",
+      "content": "Alex Shields (https://www.linkedin.com/in/alex-shields-784502ab): invited_by_scout_connector=true, date=2026-09-23, name=\"Alex Shields\", title=\"Artificial Intelligence Consultant\", company=\"Handshake\", email=\"none\", page_visited=\"https://www.sendscout.ai/\"",
+      "metadata": {}
+    },
+    {
+      "memory_type": "fact",
+      "content": "- 2026-09-23: Attempted to send nudges for Gloria Pulido (conversation DlGg4Ri5VK-mXtLtnioSXA, last message Sep 20). LinkedIn messaging tool returned 403 Subscription Required. Alerted Nick Smyth on Slack #rb2b-scout.",
+      "metadata": {}
+    },
+    {
+      "memory_type": "fact",
+      "content": "Gloria Pulido (https://www.linkedin.com/in/gloria-pulido): invited_by_scout_connector=true, date=2026-09-20, name=\"Gloria Pulido\", title=\"Sales Manager\", company=\"T-Mobile\", email=\"gloria.pulido@t-mobile.com\", page_visited=\"https://www.sendscout.ai/\"",
+      "metadata": {}
+    },
+    {
+      "memory_type": "fact",
+      "content": "2026-09-20 incident: an early run of the opener routine wrongly treated the Scout Connector account's pre-existing connections as accepts and DM'd four people who were never invited through RB2B \u2014 Luis Amado Waters, Vagelis Gkarilas, Simon Jaffery-Reed, Ahmer Najar. All four are marked do_not_contact and must never be messaged again. Rule learned: an opener DM is only ever allowed when memory holds an invited_by_scout_connector=true entry that this agent wrote when it sent the invite. Existing connections on this account are off limits permanently.",
+      "metadata": {}
+    },
+    {
+      "memory_type": "fact",
+      "content": "do_not_contact list \u2014 never send a connection request or a DM to any of these, under any circumstances: Nick Smyth, Amy Smyth, Simon Jaffery-Reed (linkedin.com/in/simonjafferyreed), Ahmer Najar (linkedin.com/in/ahmer-najar-8619b0164), Holly Gottlieb, Ian McCaig. They are the Send Scout / Oya team, not prospects.",
+      "metadata": {}
+    },
+    {
+      "memory_type": "fact",
+      "content": "- Luis Amado Waters (https://www.linkedin.com/in/luis-amado-waters-600b69b9/): opener_sent at 2026-09-20\n- Vagelis Gkarilas (https://www.linkedin.com/in/vagelisgkarilas/): opener_sent at 2026-09-20\n- Simon Jaffery-Reed (https://www.linkedin.com/in/simonjafferyreed/): opener_sent at 2026-09-20\n- Ahmer Najar (https://www.linkedin.com/in/ahmer-najar-8619b0164/): opener_sent at 2026-09-20",
+      "metadata": {}
+    },
     {
       "memory_type": "fact",
       "content": "Sending account: the LinkedIn account \"Scout Connector\", set up by Nick specifically for this agent. It is brand new with no posting or connection history, so any LinkedIn restriction or checkpoint warning stops sending for the rest of the day.",
